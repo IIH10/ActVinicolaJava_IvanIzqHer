@@ -18,7 +18,7 @@ import javax.persistence.Table;
 public class Bodega {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = true)
 	private int id_bodega;
 	
