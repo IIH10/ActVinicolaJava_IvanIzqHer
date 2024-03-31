@@ -1,7 +1,8 @@
 package manager;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -22,9 +23,11 @@ public class Manager {
 	private Transaction tx;
 	private Bodega b;
 	private Campo c;
+	private Map<Bodega, List<Vid>> bodegaVidsMap;
 
 	private Manager () {
 		this.entradas = new ArrayList<>();
+		this.bodegaVidsMap = new HashMap<>();
 	}
 	
 	public static Manager getInstance() {
@@ -77,25 +80,35 @@ public class Manager {
 	}
 
 	private void vendimia() {
-		this.b.getVids().addAll(this.c.getVids());
-		
-		tx = session.beginTransaction();
-		session.save(b);
-		
-		tx.commit();
-	}
+        // Añadir las vides de todas las bodegas a la bodega actual
+        for (Map.Entry<Bodega, List<Vid>> entry : bodegaVidsMap.entrySet()) {
+            Bodega bodega = entry.getKey();
+            List<Vid> vids = entry.getValue();
+            bodega.getVids().addAll(vids);
+        }
+        
+        tx = session.beginTransaction();
+        session.save(b);
+        tx.commit();
+        
+        bodegaVidsMap.clear();  // Limpiar el mapa de bodegas y vides para la próxima vendimia
+    }
 
 	private void addVid(String[] split) {
-		Vid v = new Vid(TipoVid.valueOf(split[1].toUpperCase()), Integer.parseInt(split[2]));
-		tx = session.beginTransaction();
-		session.save(v);
-		
-		c.addVid(v);
-		session.save(c);
-		
-		tx.commit();
-		
-	}
+        Vid v = new Vid(TipoVid.valueOf(split[1].toUpperCase()), Integer.parseInt(split[2]));
+        tx = session.beginTransaction();
+        session.save(v);
+        
+        c.addVid(v);
+        session.save(c);
+        
+        tx.commit();
+        
+        // Añadir la vid a la lista de vides de la bodega actual
+        List<Vid> vids = bodegaVidsMap.getOrDefault(b, new ArrayList<>());
+        vids.add(v);
+        bodegaVidsMap.put(b, vids);
+    }
 
 	private void addCampo(String[] split) {
 		c = new Campo(b);
