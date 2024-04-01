@@ -49,6 +49,7 @@ public class Manager {
 		getEntrada();
 		manageActions();
 		showAllCampos();
+		showCantidadVidByCampo();
 		session.close();
 	}
 
@@ -164,6 +165,17 @@ public class Manager {
 		}
 		tx.commit();
 	}
-
 	
+	public void showCantidadVidByCampo() {
+	    tx = session.beginTransaction();
+	    Query q = session.createQuery("select c.id, sum(v.cantidad) from Campo c join c.vids v group by c.id");
+	    List<Object[]> list = q.list();
+	    for (Object[] row : list) {
+	        Integer idCampo = (Integer) row[0];
+	        Long cantidad = (Long) row[1];
+	        System.out.println("Id Campo: " + idCampo + ", Total Vid Cantidad: " + cantidad);
+	    }
+	    tx.commit();
+	}
+
 }
