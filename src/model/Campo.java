@@ -15,26 +15,31 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name= "campo")
+@Table(name = "campo")
 public class Campo {
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", unique = true, nullable = true)
 	private int id_campo;
 
 	@OneToMany
-    @JoinColumn(name = "campo_id")
+	@JoinColumn(name = "campo_id")
 	private List<Vid> vids;
-	
+
 	@OneToOne
 	@JoinColumn(name = "id_bodega")
 	private Bodega bodega;
-	
-	public Campo() {}
+
+	@Column(name = "recolectado")
+	private boolean recolectado; // Atributo para almacenar el estado de recolección
+
+	public Campo() {
+	}
 
 	public Campo(Bodega b) {
 		this.bodega = b;
 		this.vids = new ArrayList<>();
+		this.recolectado = false; // Inicializar recolectado como false
 	}
 
 	@Override
@@ -44,7 +49,7 @@ public class Campo {
 	}
 
 	public void addVid(Vid v) {
-		this.vids.add(v);		
+		this.vids.add(v);
 	}
 
 	public ArrayList<Vid> getVids() {
@@ -52,4 +57,10 @@ public class Campo {
 		vids.addAll(this.vids);
 		return vids;
 	}
+	
+
+    // Método para cambiar el estado de recolección
+    public void setRecolectado(boolean recolectado) {
+        this.recolectado = recolectado;
+    }
 }

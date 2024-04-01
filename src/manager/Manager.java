@@ -24,10 +24,12 @@ public class Manager {
 	private Bodega b;
 	private Campo c;
 	private Map<Bodega, List<Vid>> bodegaVidsMap;
+	private List<Campo> camposRecolectados;
 
 	private Manager () {
 		this.entradas = new ArrayList<>();
 		this.bodegaVidsMap = new HashMap<>();
+		this.camposRecolectados = new ArrayList<>();
 	}
 	
 	public static Manager getInstance() {
@@ -80,19 +82,31 @@ public class Manager {
 	}
 
 	private void vendimia() {
-        // Añadir las vides de todas las bodegas a la bodega actual
-        for (Map.Entry<Bodega, List<Vid>> entry : bodegaVidsMap.entrySet()) {
-            Bodega bodega = entry.getKey();
-            List<Vid> vids = entry.getValue();
-            bodega.getVids().addAll(vids);
-        }
-        
-        tx = session.beginTransaction();
-        session.save(b);
-        tx.commit();
-        
-        bodegaVidsMap.clear();  // Limpiar el mapa de bodegas y vides para la próxima vendimia
-    }
+	    // Añadir las vides de todas las bodegas a la bodega actual
+	    for (Map.Entry<Bodega, List<Vid>> entry : bodegaVidsMap.entrySet()) {
+	        Bodega bodega = entry.getKey();
+	        List<Vid> vids = entry.getValue();
+	        bodega.getVids().addAll(vids);
+	    }
+	    
+	    tx = session.beginTransaction();
+	    session.save(b);
+	    
+	    // Cambiar recolectado a true a todos los campos recolectados
+	    for (Campo campo : camposRecolectados) {
+	        // Mira si el campo tiene vides antes de recolectar
+	        if (!campo.getVids().isEmpty()) {
+	            campo.setRecolectado(true);
+	            session.save(campo);
+	        }
+	    }
+	    
+	    tx.commit();
+	    
+	    bodegaVidsMap.clear();  // Limpiar el mapa de bodegas y vides para la próxima vendimia
+	}
+
+
 
 	private void addVid(String[] split) {
         Vid v = new Vid(TipoVid.valueOf(split[1].toUpperCase()), Integer.parseInt(split[2]));
@@ -111,14 +125,17 @@ public class Manager {
     }
 
 	private void addCampo(String[] split) {
-		c = new Campo(b);
-		tx = session.beginTransaction();
-		
-		int id = (Integer) session.save(c);
-		c = session.get(Campo.class, id);
-		
-		tx.commit();
-	}
+        c = new Campo(b);
+        tx = session.beginTransaction();
+        
+        int id = (Integer) session.save(c);
+        c = session.get(Campo.class, id);
+        
+        tx.commit();
+
+        // Añadir campo a la lista de campos recolectados
+        camposRecolectados.add(c);
+    }
 
 	private void addBodega(String[] split) {
 		b = new Bodega(split[1]);
