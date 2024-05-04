@@ -100,31 +100,34 @@ public class Manager {
 	}
 
 	private void addVid(String[] split) {
-        Document v = new Document();
-        v.put("tipo", split[1].toUpperCase());
-        v.put("cantidad", Integer.parseInt(split[2]));
-        
-        // Insertar la vid en MongoDB
-        MongoCollection<Document> collection = database.getCollection("Vid");
-        collection.insertOne(v);
-        
-        List<Document> vids = (List<Document>) c.get("vids");
-        if (vids == null) {
-            vids = new ArrayList<>();
-        }
-        vids.add(v);
-        c.put("vids", vids);
-        
-        // Actualizar el campo en MongoDB
-        Document updateQuery = new Document();
-        updateQuery.append("$set", new Document().append("vids", vids));
-        collection.updateOne(new Document("_id", c.get("_id")), updateQuery);
-        
-        // Añadir la vid a la lista de vides de la bodega actual
-        List<Document> bodegaVids = bodegaVidsMap.getOrDefault(b, new ArrayList<>());
-        bodegaVids.add(v);
-        bodegaVidsMap.put(b, bodegaVids);
-    }
+	    Document v = new Document();
+	    v.put("tipo", split[1].toUpperCase());
+	    v.put("cantidad", Integer.parseInt(split[2]));
+	    v.put("bodega", b.get("_id")); 
+	    v.put("campo", c.get("_id")); 
+
+	    // Insertar la vid en MongoDB
+	    MongoCollection<Document> collection = database.getCollection("Vid");
+	    collection.insertOne(v);
+
+	    List<Document> vids = (List<Document>) c.get("vids");
+	    if (vids == null) {
+	        vids = new ArrayList<>();
+	    }
+	    vids.add(v);
+	    c.put("vids", vids);
+
+	    // Actualizar el campo en MongoDB
+	    Document updateQuery = new Document();
+	    updateQuery.append("$set", new Document().append("vids", vids));
+	    collection.updateOne(new Document("_id", c.get("_id")), updateQuery);
+
+	    // Añadir la vid a la lista de vides de la bodega actual
+	    List<Document> bodegaVids = bodegaVidsMap.getOrDefault(b, new ArrayList<>());
+	    bodegaVids.add(v);
+	    bodegaVidsMap.put(b, bodegaVids);
+	}
+
 
 	private void addCampo(String[] split) {
         c = new Document();
